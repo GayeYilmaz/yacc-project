@@ -1,0 +1,13 @@
+int num=4;
+
+//This is comment
+
+int array[4];
+
+int sum(int hak){
+}
+
+sum();
+
+int sum=4+4;
+
