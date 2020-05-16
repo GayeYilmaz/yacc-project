@@ -61,3 +61,9 @@ comment "/*"([^*]|\*+[^*/])*\*+"/"
 [\n]                     {return '\n';}
 .                        {return yytext[0];}
 %%
+int main()
+{
+yyin=fopen("example.qrt","r");
+yylex();
+return 0;
+}
