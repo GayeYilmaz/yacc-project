@@ -1,38 +1,43 @@
-Name of Language:QUARANTINE
-UPDATES 
-I added some new tokens to project these are;
--COMMENT
--FLOAT
--INT
--CHAR
--DOUBLE
--VOID
--AND
--OR
--STRUCTER
--COMMENT
--ID
-SYNTAX
-Quarantine language syntax is not much differ from the genereal syntax.For appropriate syntax you have to suit f
-following rules.
-1.Every expression must have with ';'.
-2.Declaration can be done with an 
--type assignment ;
--function call;
--type array ;
--struct;
-3.Type can be INT ,FLOAT,CHAR DOUBLE VOID OR STRING
-4.Assignment contains '=' opration left side of the equaltiy can be identifier array and right side 
-of the equaltiy can be assignment ,function call,array also ıdentifie/numberr + (etc. -,*,\)assignment is an assignment
-5. Function calls done with identifier() or identifier(assignment).
-6.Funcrion descibes with type identifier (Argumant List) compund statement .
-7.Compund statements are statements and this can  While ,for,if  or a new decleration.
-8. Argument list are seperated argument tat define like  "type identifier" which seperated with coma.
-9.Array defines with "identifier []".
-10.While statements 
-"WHILE (expression) statement ;" or "WHILE (expression) compound statement ;"
-11.For statements
-"FOR (expression;expression;expression) statement" or "FOR (expression;expression;expression) compound statement"
-or "FOR (expression) statement" or "FOR (expressionn) compund statement".
-12. IF statements
-"IF (expression) statement "
+Quarantine
+I named to this langugae as Quarantine because of our quarantine life.I made this project on my own.
+UPDATED GRAMMAR
+<program>::=<function>
+<function>::=<function><statement>
+<statement>::=<expression>
+  |PRINT <expression>
+  |VARIABLE <expression>
+  |WHILE "(" <expression> ")" <statement>
+  |IF "("<expression>")" <statemnet> ELSE <statement>
+  | "{"<statementList>"}"
+  |COMMENT
+  
+<statementList>::=<statement>
+  |<statementList>
+ 
+
+<expression>::=INTEGER
+  |VARIABLE
+  |<expression> "+" <expression>
+  |<expression> "-" <expression>
+  |<expression> "*" <expression>
+  |<expression> "^" <expression>
+  |<expression> "<" <expression>
+  |<expression> ">" <expression>
+  |<expression> "<=" <expression>
+  |<expression> ">=" <expression>
+  |<expression> "!=" <expression>
+  |<expression> "==" <expression>
+  |"("<expression>")"
+ 
+  PRINT=print
+  VARIABLE=[a-z]
+  WHILE=while
+  IF=if
+  ELSE=else
+  COMMENT= "/*"([^*]|\*+[^*/])*\*+"/"
+    |[//][^\r\n]*
+  INTEGER [1-9][0-9]*
+    |0
+    
+ My language no longer different from the C language. In may languge there is no type 
+  
