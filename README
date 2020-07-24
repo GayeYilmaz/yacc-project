@@ -39,6 +39,8 @@ UPDATED GRAMMAR
   INTEGER [1-9][0-9]*
     |0
     
- My language no longer different from the C language.But I don't need data type lke int or bool.You have to end every code statement with ";" and for the loop loop body should  be
- in between "{" and "}" but if it s contan only .Also some 
+ My language no longer different from the C language.But I don't need data type like int or bool.You have to end every code statement with ";" and for the loop loop body should 
+ be in between "{" and "}".Yo can write comment in two ways first one "//" starting with this all line runnin as a comment and the other one is "/*....*/" in this sign every
+ character will be run as a comment.
+ 
  
