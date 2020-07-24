@@ -1,13 +1,16 @@
-int num=4;
+a=4;
+print(a);
+z=true;
+if(z){print(22);};
+f=false;
+if(f){print(22);};
+while(a<=6){
+  print(a);
+  a=a+1;
+  };
 
-//This is comment
+if(4<3){print(1);}
+else{print(2);};
 
-int array[4];
-
-int sum(int hak){
-}
-
-sum();
-
-int sum=4+4;
+ 
 
