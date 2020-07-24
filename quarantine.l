@@ -1,69 +1,60 @@
 %{
-
+#include <stdlib.h>
+#include "quarantine.h"
 #include "y.tab.h"
-#include<stdio.h>
-%}
-
-digit	[0-9]
-dot	"."
-id	[a-z]
-idc    [A-Z]
-num	[0-9]+
-bop	<|>|!=|<=|>=|==|&&|"||"
-
+void yyerror(char *);
+%} 
+num     [1-9][0-9]*
+id      [a-z]
 comment "/*"([^*]|\*+[^*/])*\*+"/"
-
+bop     [()=;{}.]
 
 %%
-"^"                     {printf(" TOTHEPOWER ");}
-\=                    {return EQUALS ;}
-"=="                    {return ISEQUAL ;}
-"while "                  {return WHILE ;}
-"for "                    {return FOR ;}
-"if "                     {return IF ;}
-"else "                   {return ELSE ;}
 
-"printf  "                 {return PRINT ;}
-"int "                  {return INT ;}
-"char"                   {return CHAR ;}
-"true"                {return BOOLEAN;}
-"false"                {return BOOLEAN;}
-"float"                 {return FLOAT ;}
-"void"                   {return VOID ;}
-"!= "                   {return NE ;}
+{id}       { 
+                yylval.sIndex = *yytext - 'a';
+                return VARIABLE;
+            }
 
-\<=                    {return LE;}
-\>=                     {return GE;}
-'<'						 {return GT;}
-'>'						 {return LT ;}
-"&&"                     {return AND ;}
-"||"                     {return OR;}
-"double"                   {return DOUBLE ;}
-"struct"                  {return STRUCTER ;}
-,                   {return COMA;}
-[+-/*]               {return OP;} 
-["]([^"\\\n]|\\.)*["]     {return STRING ; }
-[//][^\r\n]*             {return COMMENT;}
-{comment}                {return COMMENT;}
-{num}                 { return NUM;}
+0           {
+                yylval.iValue = atoi(yytext);
+                return INTEGER;
+            }
 
-\{                       {return OBC;}
-\}                      {return CBC;}
-\(                       {return OB;}
-\)                        {return CB;}
-\[                       {return OSB;}
-\]                        {return CSB;}
-'.'                          {return DOT;}
-({idc})*                 {return  CONSTANT;}
-{id}	                 {return  CHARACTER ;}
-({id})*	                 {return  ID;}
-[\t]+                     ;
-[\n]                     {return '\n';}
-.                        {return yytext[0];}
+{num}       {
+                yylval.iValue = atoi(yytext);
+                return INTEGER;
+            }
+
+{bop}       {
+                return *yytext;
+             }
+{comment}       return COMMENT;
+[//][^\r\n]*    return COMMENT;
+"true"          return TRUE;
+"false"         return FALSE;
+"+"             return PLUS;
+"-"             return MINUS;
+"*"             return TIMES;
+\<           return LT;
+\>             return GT;
+">="            return GE;
+"<="            return LE;
+"=="            return EQ;
+"!="            return NE;
+"while"         return WHILE;
+"if"            return IF;
+"else"          return ELSE;
+"print"         return PRINT;
+
+
+[ \t\n]+        ;       /* ignore whitespace */
+
+.               yyerror("Unknown character");
 %%
-int main()
-{
-yyin=fopen("example.qrt","r");
-yylex();
-return 0;
+
+int yywrap(void) {
+    return 1;
 }
+
+
