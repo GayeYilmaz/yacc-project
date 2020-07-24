@@ -39,5 +39,6 @@ UPDATED GRAMMAR
   INTEGER [1-9][0-9]*
     |0
     
- My language no longer different from the C language. In may languge there is no type 
-  
+ My language no longer different from the C language.But I don't need data type lke int or bool.You have to end every code statement with ";" and for the loop loop body should  be
+ in between "{" and "}" but if it s contan only .Also some 
+ 
