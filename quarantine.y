@@ -1,145 +1,189 @@
 %{
-#include<stdio.h>
-#include<stdlib.h>
-int yylex();
-int yyerror();
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <stdarg.h>
+    #include "quarantine.h"
+    #include "y.tab.h"
+	
+
+    nodeType *opr(int oper, int nops, ...);
+    nodeType *id(int i);
+    nodeType *con(int value);
+    void freeNode(nodeType *p);
+    int ex(nodeType *p);
+    int yylex(void);
+    void yyerror(char *s);
+    int sym[26];                    
 %}
 
-%start grammar
+%union {
+    int iValue;                 
+    char sIndex;                /* sembol tablosu */
+    nodeType *nPtr;             
+};
 
-%left OP
-%token NUM ID 
-%token WHILE FOR 
-%token IF  ELSE PRINT 
-%token INT CHAR BOOLEAN FLOAT DOUBLE VOID
-%token STRUCTER
-%token COMMENT 
-%token CONSTANT
-%token CHARACTER  STRING
-%token COMA
-%token GE LE GT LT NE AND OR
-%left  DOT ISEQUAL OBC CBC OB CB EQUALS  CSB OSB
+%token <iValue> INTEGER
+%token <sIndex> VARIABLE
+%token COMMENT TRUE FALSE
+%token WHILE IF  PRINT 
+%nonassoc IFX
+%nonassoc ELSE
 
+%left GE LE EQ NE GT LT
+%left PLUS MINUS
+%left TIMES  DIV
+%nonassoc UMINUS
+
+%type <nPtr> stmt expr stmt_list
 
 %%
-grammar: start'\n'{printf("TRUE "); exit(0);};
-start:  Function
-    |COMMENT
-    | Declaration 
-	 ;
 
-/* Declaration block */
-Declaration: Type Assignment ';'
-    | Assignment ';'
-    | FunctionCall ';'
-    | ArrayUsage ';'
-    | Type ArrayUsage ';'
-    | StructStmt ';'
-    | error
-    ;
+program:
+        function                { exit(0); }
+        ;
 
-/* Assignment block */
-Assignment: ID EQUALS Assignment
-    | ID EQUALS FunctionCall
-    | ID EQUALS ArrayUsage
-    | ArrayUsage EQUALS Assignment
-    | ID COMA Assignment
-    | Assignment NE Assignment
-	| NUM COMA Assignment
-    | ID OP  Assignment
-    | NUM OP Assignment
-    | OB  Assignment CB
-    |   NUM
-    |   ID
-    ;
+function:
+          function stmt         { ex($2); freeNode($2); }
+        |
+        ;
 
-/* Function Call Block */
-FunctionCall : ID OB CB
-    | ID OB Assignment CB
-    ;
+stmt:
+          ';'                            { $$ = opr(';', 2, NULL, NULL); }
+        | expr ';'                       { $$ = $1; }
+        | PRINT expr ';'                 { $$ = opr(PRINT, 1, $2); }
+        | VARIABLE '=' expr ';'          { $$ = opr('=', 2, id($1), $3); }
+        | WHILE '(' expr ')' stmt        { $$ = opr(WHILE, 2, $3, $5); } /* while op, stmt, c style while */ 
+		| IF '(' expr ')' stmt %prec IFX { $$ = opr(IF, 2, $3, $5); }
+        | IF '(' expr ')' stmt ELSE stmt { $$ = opr(IF, 3, $3, $5, $7); }
+        | '{' stmt_list '}'              { $$ = $2; }
+		| COMMENT                        { $$ = opr(COMMENT,2,NULL,NULL);}
+        ;
 
-/* Array Usage */
-ArrayUsage : ID OSB Assignment CSB
-    ;
+stmt_list:
+          stmt                  { $$ = $1; }
+        | stmt_list stmt        { $$ = opr(';', 2, $1, $2); }
+        ;
 
-/* Function block */
-Function: Type ID OB  ArgListOpt CB CompoundStmt
-    ;
-ArgListOpt: ArgList
-    |
-    ;
-ArgList:  ArgList ',' Arg
-    | Arg
-    ;
-Arg:    Type ID
-    ;
-CompoundStmt:   OBC StmtList CBC
-    ;
-StmtList:StmtList Stmt
-    |
-    ;
-Stmt:   WhileStmt
-    | Declaration
-    | ForStmt
-    | IfStmt
-    | PrintFunc
-    ;
+expr:
+          INTEGER               { $$ = con($1); }
+        | VARIABLE              { $$ = id($1); }
+		| '-' expr %prec UMINUS { $$ = opr(UMINUS, 1, $2); }
+		| TRUE                  { $$ = opr(TRUE,2,NULL,NULL); }
+		| FALSE                 { $$ = opr(FALSE,2,NULL,NULL); }
+        | expr PLUS expr        { $$ = opr(PLUS, 2, $1, $3); }
+        | expr MINUS expr       { $$ = opr(MINUS, 2, $1, $3); }
+        | expr TIMES expr       { $$ = opr(TIMES, 2, $1, $3); }
+        | expr LT expr          { $$ = opr(LT, 2, $1, $3); }
+        | expr GT expr          { $$ = opr(GT, 2, $1, $3); }
+        | expr GE expr          { $$ = opr(GE, 2, $1, $3); }
+        | expr LE expr          { $$ = opr(LE, 2, $1, $3); }
+        | expr NE expr          { $$ = opr(NE, 2, $1, $3); }
+        | expr EQ expr          { $$ = opr(EQ, 2, $1, $3); }
+        | '(' expr ')'          { $$ = $2; }
+        ;
 
-/* Type Identifier block */
-Type:   INT
-    | FLOAT
-    | CHAR
-    | DOUBLE
-    | VOID
-    ;
-
-/* Loop Blocks */
-WhileStmt: WHILE OB Expr CB Stmt
-    | WHILE OB Expr CB CompoundStmt
-    ;
-
-/* For Block */
-ForStmt: FOR OB Expr ';' Expr ';' Expr CB Stmt
-       | FOR OB Expr ';' Expr ';' Expr CB CompoundStmt
-       | FOR OB Expr CB Stmt
-       | FOR OB Expr CB CompoundStmt
-    ;
-
-/* IfStmt Block */
-IfStmt : IF OB Expr CB Stmt ELSE Stmt
-    ;
-
-/* Struct Statement */
-StructStmt : STRUCTER ID OBC Type Assignment CBC
-    ;
-
-/* Print Function */
-PrintFunc : PRINT OB Expr CB ';'
-    ;
-
-/*Expression Block*/
-Expr:
-    | Expr NE Expr
-	| Expr LE Expr
-	| Expr GE Expr
-	| Expr GT Expr
-	| Expr LT Expr
-	| Expr AND Expr
-	| Expr OR Expr
-	|Expr ISEQUAL Expr
-	|Expr EQUALS Expr
-	| Assignment
-    | ArrayUsage
-    ;
 %%
-int main()
-{
-printf("Enter Code\n");
-yyparse();
-return 0;
+
+nodeType *con(int value) {
+    nodeType *p;
+
+
+    if ((p = malloc(sizeof(nodeType))) == NULL)
+        yyerror("out of memory");
+
+
+    p->type = typeCon;
+    p->con.value = value;
+
+    return p;
 }
-yyerror()
-{
-printf("FALSE :");
-exit(0);
+
+nodeType *id(int i) {
+    nodeType *p;
+
+
+    if ((p = malloc(sizeof(nodeType))) == NULL)
+        yyerror("out of memory");
+    
+
+
+    p->type = typeId;
+    p->id.i = i;
+
+    return p;
+}
+
+nodeType *opr(int oper, int nops, ...) {
+    va_list ap;
+    nodeType *p;
+    int i;
+
+
+    if ((p = malloc(sizeof(nodeType) + (nops-1) * sizeof(nodeType *))) == NULL)
+        yyerror("out of memory");
+
+
+    p->type = typeOpr;
+    p->opr.oper = oper;
+    p->opr.nops = nops;
+    va_start(ap, nops);
+    for (i = 0; i < nops; i++)
+        p->opr.op[i] = va_arg(ap, nodeType*);
+    va_end(ap);
+    return p;
+}
+
+void freeNode(nodeType *p) {
+    int i;
+
+    if (!p) return;
+    if (p->type == typeOpr) {
+        for (i = 0; i < p->opr.nops; i++)
+            freeNode(p->opr.op[i]);
+    }
+    free (p);
+}
+
+void yyerror(char *s) {
+    fprintf(stdout, "%s\n", s);
+}
+
+int main(void) {
+    yyparse();
+    return 0;
+}
+
+int ex(nodeType *p) {
+    if (!p) return 0;
+    switch(p->type) {
+    case typeCon:       return p->con.value;
+    case typeId:        return sym[p->id.i];
+    case typeOpr:
+        switch(p->opr.oper) {
+        case WHILE:     while(ex(p->opr.op[0])) ex(p->opr.op[1]); return 0;
+        case IF:        if (ex(p->opr.op[0]))
+                            ex(p->opr.op[1]);
+                        else if (p->opr.nops > 2)
+                            ex(p->opr.op[2]);
+                        return 0;
+        case PRINT:     printf("%d\n", ex(p->opr.op[0])); return 0;
+        case ';':       ex(p->opr.op[0]); return ex(p->opr.op[1]);
+        case '=':       return sym[p->opr.op[0]->id.i] = ex(p->opr.op[1]);
+        case UMINUS:    return -ex(p->opr.op[0]);
+        case PLUS:       return ex(p->opr.op[0]) + ex(p->opr.op[1]);
+        case MINUS:       return ex(p->opr.op[0]) - ex(p->opr.op[1]);
+        case TIMES:       return ex(p->opr.op[0]) * ex(p->opr.op[1]);
+        case DIV:       return ex(p->opr.op[0]) / ex(p->opr.op[1]);
+        case LT:       return ex(p->opr.op[0]) < ex(p->opr.op[1]);
+        case GT:       return ex(p->opr.op[0]) > ex(p->opr.op[1]);
+        case GE:        return ex(p->opr.op[0]) >= ex(p->opr.op[1]);
+        case LE:        return ex(p->opr.op[0]) <= ex(p->opr.op[1]);
+        case NE:        return ex(p->opr.op[0]) != ex(p->opr.op[1]);
+        case EQ:        return ex(p->opr.op[0]) == ex(p->opr.op[1]);
+		case TRUE:        return 1;
+		case FALSE:        return 0;
+		case COMMENT:        return ex(p->opr.op[0])  ;
+        }
+    }
+    return 0;
 }
