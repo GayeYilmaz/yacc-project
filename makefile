@@ -1,11 +1,11 @@
 quarantine: lex.yy.c y.tab.c
-	gcc -g lex.yy.c y.tab.c -o quarantine
+        gcc -g lex.yy.c y.tab.c -o quarantine
 
 lex.yy.c: y.tab.c quarantine.l
-	lex quarantine.l
+        lex quarantine.l
 
-y.tab.c: quarantinealcc.y
-	yacc -d quarantinecalc.y
+y.tab.c: quarantine.y
+        yacc -d quarantine.y
 
-clean: 
-	rm -rf lex.yy.c y.tab.c y.tab.h quarantine quarantine.dSYM
+clean:
+        rm -rf lex.yy.c y.tab.c y.tab.h quarantine quarantine.dSYM
